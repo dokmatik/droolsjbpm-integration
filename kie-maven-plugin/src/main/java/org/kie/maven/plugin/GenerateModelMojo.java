@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
@@ -135,9 +136,7 @@ public class GenerateModelMojo extends AbstractKieMojo {
             setSystemProperties(properties);
 
             final KieBuilderImpl kieBuilder = (KieBuilderImpl) ks.newKieBuilder(projectDir);
-            kieBuilder.buildAll(ExecutableModelMavenProject.SUPPLIER, s -> {
-                return !s.contains("src/test/java");
-            });
+            kieBuilder.buildAll(ExecutableModelMavenProject.SUPPLIER, fileFilterForTestDirectory());
 
             InternalKieModule kieModule = (InternalKieModule) kieBuilder.getKieModule();
             List<String> generatedFiles = kieModule.getFileNames()
@@ -237,6 +236,12 @@ public class GenerateModelMojo extends AbstractKieMojo {
         }
         return null;
     }
+
+    private Predicate<String> fileFilterForTestDirectory() {
+        String path = this.testDir.toString().substring(this.projectDir.toString().length() + 1);
+        return s -> !s.contains(path);
+    }
+
 
     public static class ExecutableModelMavenProject implements KieBuilder.ProjectType {
 
